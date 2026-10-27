@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">朝夕●一日一记</string>
+    <string name="title_activity_main">朝夕●一日一记</string>
+    <string name="package_name">app.chaoxi.daily</string>
+    <string name="custom_url_scheme">app.chaoxi.daily</string>
+</resources>
