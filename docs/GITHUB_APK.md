@@ -4,7 +4,7 @@
 
 ## 1. 首次把本地仓库上传 GitHub
 
-当前已有空的 `main` 基线提交和独立功能分支 `codex/feature/chaoxi-android`。还没有配置远程仓库。先验收本地界面与说明；确认后，在 GitHub 创建一个**空仓库**，建议命名 `chaoxi-daily`，不要勾选自动创建 README、.gitignore 或许可证。
+当前已有空的 `main` 基线提交和独立功能分支 `feature/chaoxi-android`。还没有配置远程仓库。先验收本地界面与说明；确认后，在 GitHub 创建一个**空仓库**，建议命名 `chaoxi-daily`，不要勾选自动创建 README、.gitignore 或许可证。
 
 在项目目录终端执行（把地址替换成你实际创建的仓库地址）：
 
@@ -12,7 +12,7 @@
 git status
 git remote add origin https://github.com/你的用户名/chaoxi-daily.git
 git push -u origin main
-git push -u origin codex/feature/chaoxi-android
+git push -u origin feature/chaoxi-android
 ```
 
 这些命令只在你决定上传时执行。本项目不会替你推送。遇到登录提示按 GitHub 引导登录，不要把访问令牌写进仓库 URL 或源代码。已有 origin 时先 `git remote -v` 核对，不盲目重复添加。
@@ -39,7 +39,7 @@ debug 包适合界面和功能验收。GitHub 临时构建机的 debug 签名可
 
 ## 3. 验收和 PR 合并
 
-功能分支通过检查后，在 GitHub 点 **Compare & pull request**，base 选择 `main`，compare 选择 `codex/feature/chaoxi-android`。说明用户行为、测试和限制，审查后再合并。
+功能分支通过检查后，在 GitHub 点 **Compare & pull request**，base 选择 `main`，compare 选择 `feature/chaoxi-android`。说明用户行为、测试和限制，审查后再合并。
 
 个人仓库没有其他审查人时也保留 PR 记录，自己逐项核对；仓库如果设置了“必须其他人批准”，需要指定实际审查人，不绕过规则。
 
@@ -51,7 +51,7 @@ git pull --ff-only origin main
 git log --oneline --decorate -5
 ```
 
-确认功能已合入后按授权清理分支。优先 `git branch -d codex/feature/chaoxi-android`；若使用 squash merge 导致安全删除被拒绝，先核对实际合入情况，不直接改用 `-D`。
+确认功能已合入后按授权清理分支。优先 `git branch -d feature/chaoxi-android`；若使用 squash merge 导致安全删除被拒绝，先核对实际合入情况，不直接改用 `-D`。
 
 ## 4. 持续使用：固定证书的 release APK
 

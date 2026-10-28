@@ -67,4 +67,4 @@ npm run android:debug
 
 ## 协作
 
-遵循用户提供的《Git 协作规范.pdf》及 [AGENTS.md](AGENTS.md)。当前 `main` 是空基线，功能位于 `codex/feature/chaoxi-android`。本地验收后再由用户推送、创建 PR、审查合并；不直接在主分支开发，不提交构建产物、截图、模型或证书。
+遵循用户提供的《Git 协作规范.pdf》及 [AGENTS.md](AGENTS.md)。当前 `main` 是空基线，功能位于 `feature/chaoxi-android`。本地验收后再由用户推送、创建 PR、审查合并；不直接在主分支开发，不提交构建产物、截图、模型或证书。
