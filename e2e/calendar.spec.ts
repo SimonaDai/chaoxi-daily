@@ -68,6 +68,21 @@ test('未定日期存待整理，自定义类型有颜色且可以再使用', as
 });
 
 test('截图仅保存在本机，重载后仍能查看并完整导出', async ({ page }) => {
+  // 控制压缩完成时机，覆盖 CI 上“点击已完成，但异步保存尚未完成”的情况。
+  const compression = await page.evaluateHandle(() => {
+    const original = HTMLCanvasElement.prototype.toBlob;
+    let release = () => {};
+    let started = false;
+    const ready = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    HTMLCanvasElement.prototype.toBlob = function (callback, type, quality) {
+      started = true;
+      HTMLCanvasElement.prototype.toBlob = original;
+      void ready.then(() => original.call(this, callback, type, quality));
+    };
+    return { release, isStarted: () => started };
+  });
   await page.getByRole('button', { name: '截图记录' }).click();
   const png = await page.evaluate(() => {
     const canvas = document.createElement('canvas');
@@ -91,16 +106,24 @@ test('截图仅保存在本机，重载后仍能查看并完整导出', async ({
       buffer: Buffer.from(png, 'base64'),
     });
   await page.getByRole('button', { name: '仅附图，自己填写' }).click();
+  const editor = page.getByRole('dialog');
   await page.getByRole('button', { name: '存入待整理' }).click();
+  await expect.poll(() => compression.evaluate((control) => control.isStarted())).toBe(true);
+  await expect(editor.getByRole('button', { name: '正在保存…' })).toBeDisabled();
+  await compression.evaluate((control) => control.release());
+  // 点击结束不等于保存结束；关闭编辑器和显示新记录发生在持久化成功之后。
+  await expect(editor).not.toBeVisible();
+  await expect(page.getByRole('button', { name: /截图待整理/ })).toBeVisible();
+  await compression.dispose();
   await page.reload();
   await page.getByRole('button', { name: /待整理，1/ }).click();
   await page.getByRole('button', { name: /截图待整理/ }).click();
   await page.getByText('原始截图 · notice.png').click();
   const image = page.getByRole('img', { name: '事项截图：notice.png' });
   await expect(image).toBeVisible();
-  expect(
-    await image.evaluate((node: HTMLImageElement) => node.complete && node.naturalWidth > 0),
-  ).toBe(true);
+  await expect
+    .poll(() => image.evaluate((node: HTMLImageElement) => node.complete && node.naturalWidth > 0))
+    .toBe(true);
   await page.getByLabel('日期还没确定，先存入待整理').uncheck();
   await page.getByRole('button', { name: '记进日历' }).click();
   await page.getByRole('button', { name: '截图待整理，查看详情' }).click();
