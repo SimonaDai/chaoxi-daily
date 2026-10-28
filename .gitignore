@@ -1,5 +1,6 @@
 node_modules/
 dist/
+docs/
 coverage/
 .tools/
 .cache/
@@ -36,3 +37,4 @@ android/app/src/main/assets/capacitor.config.json
 android/app/src/main/assets/capacitor.plugins.json
 android/capacitor-cordova-android-plugins/
 *.tsbuildinfo
+AGENTS.md

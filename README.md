@@ -64,7 +64,3 @@ npm run android:debug
 - 离线 OCR 引擎和中文字体会增加安装包体积；不以运行时在线下载模型来换取小包。
 
 架构、更新协议及已知限制见 [开发说明](docs/ARCHITECTURE.md)。第三方组件与许可证见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
-
-## 协作
-
-遵循用户提供的《Git 协作规范.pdf》及 [AGENTS.md](AGENTS.md)。当前 `main` 是空基线，功能位于 `feature/chaoxi-android`。本地验收后再由用户推送、创建 PR、审查合并；不直接在主分支开发，不提交构建产物、截图、模型或证书。
