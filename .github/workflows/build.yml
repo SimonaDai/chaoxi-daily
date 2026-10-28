@@ -2,7 +2,7 @@ name: Check and build APK
 
 on:
   push:
-    branches: [main, "feature/**", "fix/**"]
+    branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -52,6 +52,8 @@ jobs:
   android:
     name: Android APK
     needs: check
+    # PR 只运行检查；合并到 main 后自动打包，也保留手动打包入口。
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
