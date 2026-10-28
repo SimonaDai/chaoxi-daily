@@ -1,27 +1,48 @@
-# 从源码备份到手机 APK
+# 日常开发、PR 合并与 APK 打包
 
 源码、构建结果、手机资料是三件不同的东西：GitHub 仓库保存源码；Actions 临时编译 APK；你在手机记录的事项和截图只在手机，需从应用内导出备份。
 
-## 1. 首次把本地仓库上传 GitHub
+## 1. 日常开发：从最新 main 创建任务分支
 
-当前已有空的 `main` 基线提交和独立功能分支 `feature/chaoxi-android`。还没有配置远程仓库。先验收本地界面与说明；确认后，在 GitHub 创建一个**空仓库**，建议命名 `chaoxi-daily`，不要勾选自动创建 README、.gitignore 或许可证。
+项目位于 `F:/chaoxi-daily`，远程仓库为 `https://github.com/SimonaDai/chaoxi-daily`。初始功能 PR #1 已合并，后续任务从最新的 main 开始，不继续在已完成的旧功能分支上堆叠开发。
 
-在项目目录终端执行（把地址替换成你实际创建的仓库地址）：
+先确认没有未保存的修改，再同步主分支。下面的 `feature/your-feature` 是新功能的分支名示例；修复使用 `fix/问题名称`，不要添加工具或代理名称前缀。
 
 ```sh
 git status
-git remote add origin https://github.com/你的用户名/chaoxi-daily.git
-git push -u origin main
-git push -u origin feature/chaoxi-android
+git switch main
+git pull --ff-only origin main
+git switch -c feature/your-feature
 ```
 
-这些命令只在你决定上传时执行。本项目不会替你推送。遇到登录提示按 GitHub 引导登录，不要把访问令牌写进仓库 URL 或源代码。已有 origin 时先 `git remote -v` 核对，不盲目重复添加。
+开发和自测完成后，可以先暂存修改；提交内容和说明必须由用户确认后，才能执行 git commit。推送也按用户授权执行。
 
-若 `main` 推送显示分支冲突，先停下核对远程历史，不使用强推。可能是创建 GitHub 仓库时自动生成过文件，需要先处理双方历史。
+```sh
+npm run check
+npm run policy:validate
+npm run test:e2e
+git add .
+# 用户确认范围与提交说明后执行：
+git commit -m "feat: 本次具体完成的功能"
+git push -u origin feature/your-feature
+```
 
-## 2. 从功能分支拿到第一个测试 APK
+如果同步主分支报冲突或无法快进，先检查双方历史，不使用强推或强制重置。遇到登录提示按 GitHub 引导登录，不要把访问令牌写入仓库 URL 或源码。
 
-功能分支推送会触发 **Check and build APK** 工作流：
+## 2. PR 检查通过后合并，再下载 main 的 APK
+
+在 GitHub 创建 PR：base 选择 `main`，compare 选择当前任务分支。检查改动范围、提交说明和测试结果，再确认合并。
+
+| 操作                               | 自动行为                                                                 |
+| ---------------------------------- | ------------------------------------------------------------------------ |
+| 只推送任务分支，尚未创建 PR        | 不触发工作流                                                             |
+| 创建 PR / 给已打开的 PR 推送新提交 | 只运行 Source and browser checks；Android APK 显示 Skipped，属于正常行为 |
+| 合并 PR，main 收到新提交           | 运行检查，通过后自动编译并上传 debug APK                                 |
+| 手动 Run workflow                  | 检查通过后打包；可以选 debug，release 需要固定证书且只允许 main          |
+
+PR 阶段的检查覆盖源码、类型、单元测试、网页构建、政策数据和浏览器路径。Android 实际编译放在合并后，不把网页检查通过等同于 APK 编译或真机验收通过。
+
+合并后，到仓库的 Actions 页面，选择 **main 分支、对应合并提交**的 Check and build APK 运行记录：
 
 | GitHub 页面               | 操作                                                  |
 | ------------------------- | ----------------------------------------------------- |
@@ -37,13 +58,21 @@ debug 包适合界面和功能验收。GitHub 临时构建机的 debug 签名可
 
 手机若提示允许“安装未知应用”，只给你用于打开安装包的可信文件管理器/浏览器授权，安装后可关闭。Android 7 以下不在支持范围内。
 
-## 3. 验收和 PR 合并
+需要在合并前安装测试包时，可以在 Actions → Check and build APK → Run workflow 中选择自己的任务分支和 debug。手动运行是明确的额外构建，不会由普通分支推送重复触发。正式 release 包仍需选择 main。
 
-功能分支通过检查后，在 GitHub 点 **Compare & pull request**，base 选择 `main`，compare 选择 `feature/chaoxi-android`。说明用户行为、测试和限制，审查后再合并。
+## 3. 主分支保护与合并后的分支清理
 
-个人仓库没有其他审查人时也保留 PR 记录，自己逐项核对；仓库如果设置了“必须其他人批准”，需要指定实际审查人，不绕过规则。
+仓库首页若显示 main 未保护，点击 Protect this branch，或到 Settings → Rules / Branches 为 main 设置保护规则：
 
-合并后在本机同步（先保证没有未保存的修改）：
+- 要求通过 Pull Request 合并，不直接在 main 开发。
+- 要求状态检查通过，选择本项目的 **Source and browser checks**。
+- 不把仅在合并后运行的 Android APK 设为 PR 必需检查。
+- 阻止 main 被强推或删除。
+- 单人开发可要求 PR 而不强制第二人批准；有实际协作者时再启用必要审批，避免自己无法批准自己的 PR。
+
+官方说明：[受保护的分支](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches)。这些是仓库管理员设置，源码中的 AGENTS.md 不会自动启用 GitHub 分支保护。
+
+合并后同步本机 main（先保证工作区干净）：
 
 ```sh
 git switch main
@@ -51,7 +80,14 @@ git pull --ff-only origin main
 git log --oneline --decorate -5
 ```
 
-确认功能已合入后按授权清理分支。优先 `git branch -d feature/chaoxi-android`；若使用 squash merge 导致安全删除被拒绝，先核对实际合入情况，不直接改用 `-D`。
+确认任务已合入后，可在已合并 PR 页面点击 Delete branch 清理旧远程任务分支。经用户授权，再删除对应的本地分支，并清理失效的远程引用：
+
+```sh
+git branch -d feature/your-feature
+git fetch --prune origin
+```
+
+main 长期保留；每个新任务创建新分支。Dependabot 的未合并分支跟它们的开放 PR 对应，不批量删，不随手合入 main。安全删除被拒绝时先核对实际合入情况，不直接改用 `-D`；尤其是 squash merge 后应先检查差异。
 
 ## 4. 持续使用：固定证书的 release APK
 
@@ -118,4 +154,15 @@ GitHub Actions 有免费额度；公开仓库使用标准 GitHub 托管 runner �
 | 完整备份           | 能导出至选定位置，恢复后图片和文字一致                |
 | 覆盖升级           | 使用同一 release 证书及更大 versionCode，原有记录保留 |
 
-浏览器端到端测试不能替代上述 Android 真机验收。当前开发机没有 JDK/Android SDK，已完成网页构建与 Capacitor 同步；GitHub 构建结果需上传后实际确认。
+浏览器端到端测试不能替代上述 Android 真机验收。本机没有配置 JDK/Android SDK；APK 是否成功以相应的云端运行记录为准，真机验收单独确认。
+
+## 8. Dependabot：半年维护一次普通版本升级
+
+Dependabot 是依赖维护机器人，创建的 PR 和分支是升级建议，不会直接改 main。当前保留机器人，普通版本更新按半年度执行：每年 1 月 1 日、7 月 1 日北京时间 09:00 检查。
+
+- npm 和 GitHub Actions 各自将 minor / patch 小版本升级分组，减少 PR 数量。
+- major 大版本仍逐个创建 PR，单独阅读发布说明并评审；检查变绿不替代兼容性判断。
+- 普通版本更新安排不延迟安全告警；如果仓库已启用安全更新，它们按安全机制独立处理。
+- 本次已有的 4 个升级 PR 经逐项检查后合并，并删除对应分支；后续普通版本升级遵循上述半年维护安排。
+
+官方说明：[Dependabot 更新频率和分组](https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/optimizing-pr-creation-version-updates)、[安全更新配置](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configure-security-updates)。

@@ -41,7 +41,7 @@ Windows 浏览器测试默认使用已安装的 Microsoft Edge；其他系统先
 
 ## 生成 APK
 
-最适合当前环境的方式是上传 GitHub 后使用 Actions。完整步骤见 [GitHub 上传与 APK 打包教程](docs/GITHUB_APK.md)。工作流先执行源码与浏览器检查，再编译 APK；默认产生 debug 测试包。固定签名正式包需要另外配置证书。
+日常流程是：任务分支推送并创建 PR → 检查通过 → 合并到 main → Actions 自动编译 APK → 在运行页面的 Artifacts 下载。PR 阶段只检查，不自动打包；功能分支单独推送不触发工作流。也可手动触发打包，默认产生 debug 测试包；固定签名正式包需要另外配置证书。完整步骤见 [GitHub 上传与 APK 打包教程](docs/GITHUB_APK.md)。
 
 本机编译需要 JDK 21、Android SDK Platform 36 / Build Tools 36.0.0，并正确配置 `JAVA_HOME` 和 `ANDROID_HOME`：
 
