@@ -1,25 +1,69 @@
 import { LunarMonth, Solar } from 'lunar-typescript';
 import { addDays, isDateKey, parseDate } from './dates';
+import { type HolidayFeed, holidayOn } from './holidays';
 import type { EventRecord, Occurrence, Snapshot } from './model';
+
+const festivalNames: Record<string, string> = {
+  万圣节前夜: '万圣夜',
+  元旦节: '元旦',
+};
+
+const traditionalFestivals = new Set(['上巳节', '中元节', '寒衣节', '下元节', '尾牙']);
+// 常用南北方习俗日期，按农历普通月计算，不据此推断放假。
+// 来源：https://www.jcgov.gov.cn/dtxx/ztzl/2022nzt/2022ncj_47119/xsgjwzzhn_47123/202201/t20220125_1544825.shtml
+const regionalFestivals: Record<string, string> = {
+  '12-23': '北方小年',
+  '12-24': '南方小年',
+};
 
 export function chineseDate(date: string) {
   const parsed = parseDate(date);
-  const lunar = Solar.fromYmd(
+  const solar = Solar.fromYmd(
     parsed.getUTCFullYear(),
     parsed.getUTCMonth() + 1,
     parsed.getUTCDate(),
-  ).getLunar();
+  );
+  const lunar = solar.getLunar();
   const month = `${lunar.getMonthInChinese()}月`;
   const day = lunar.getDayInChinese();
+  const regional = regionalFestivals[`${lunar.getMonth()}-${lunar.getDay()}`];
   return {
     short: lunar.getDay() === 1 ? month : day,
     full: `${month}${day}`,
     term: lunar.getJieQi(),
-    festival: lunar.getFestivals().join(' · '),
+    festivals: [
+      ...new Set(
+        [
+          ...lunar.getFestivals(),
+          ...solar.getFestivals(),
+          ...(regional ? [regional] : []),
+          ...lunar.getOtherFestivals().filter((name) => traditionalFestivals.has(name)),
+        ].map((name) => festivalNames[name] ?? name),
+      ),
+    ],
     year: lunar.getYear(),
     month: lunar.getMonth(),
     day: lunar.getDay(),
   };
+}
+
+/** 节日、节气只提供名称；放假和补班仅来自审核过的政策数据。 */
+export function calendarDay(date: string, policies: HolidayFeed) {
+  const lunar = chineseDate(date);
+  const holiday = holidayOn(policies, date);
+  const labels: { name: string; kind: 'term' | 'festival' | 'holiday' }[] = [];
+  if (lunar.term) labels.push({ name: lunar.term, kind: 'term' });
+  for (const name of lunar.festivals) {
+    if (!labels.some((label) => label.name === name)) labels.push({ name, kind: 'festival' });
+  }
+  if (
+    holiday.kind === 'off' &&
+    holiday.name &&
+    !labels.some((label) => label.name === holiday.name)
+  ) {
+    labels.push({ name: holiday.name, kind: 'holiday' });
+  }
+  return { lunar, holiday, labels };
 }
 
 export function matchesRepeat(event: EventRecord, date: string): boolean {

@@ -56,7 +56,7 @@ export function ImportNotice({
     }
   };
   return (
-    <Sheet title="从截图记录" onClose={onClose}>
+    <Sheet title="从截图记录" onClose={onClose} fullHeight>
       <div className="import-content">
         <p className="sheet-intro">把通知放进来，重要的信息就有了位置。</p>
         <label className="image-drop">

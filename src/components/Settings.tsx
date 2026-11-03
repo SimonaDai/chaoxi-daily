@@ -206,6 +206,8 @@ export function Settings({ app, onClose }: { app: AppModel; onClose(): void }) {
           朝夕●一日一记 · 0.1.0
           <br />
           学习、工作，也记生活。
+          <br />
+          界面字体：MiSans Global（小米）
         </p>
       </div>
     </Sheet>

@@ -1,36 +1,5 @@
 @import url("./tokens.css");
-
-@font-face {
-  font-family: "Noto Sans SC";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("@fontsource/noto-sans-sc/files/noto-sans-sc-chinese-simplified-400-normal.woff2")
-    format("woff2");
-}
-@font-face {
-  font-family: "Noto Sans SC";
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url("@fontsource/noto-sans-sc/files/noto-sans-sc-chinese-simplified-500-normal.woff2")
-    format("woff2");
-}
-@font-face {
-  font-family: "Noto Serif SC";
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url("@fontsource/noto-serif-sc/files/noto-serif-sc-chinese-simplified-500-normal.woff2")
-    format("woff2");
-}
-@font-face {
-  font-family: "Manrope";
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url("@fontsource/manrope/files/manrope-latin-500-normal.woff2") format("woff2");
-}
+@import url("./assets/fonts/misans-global/fonts.css");
 
 * {
   box-sizing: border-box;
@@ -43,7 +12,7 @@ html {
 body {
   margin: 0;
   color: var(--ink);
-  font-family: "Noto Sans SC", sans-serif;
+  font-family: var(--font-ui);
   font-size: 14px;
   line-height: 1.7;
 }
@@ -152,12 +121,12 @@ svg {
   border-radius: 14px;
   background: var(--green);
   color: #fffdf5;
-  font-family: "Noto Serif SC", serif;
+  font-family: var(--font-ui);
   font-size: 22px;
   box-shadow: 0 4px 12px #335c4614;
 }
 .brand-name {
-  font-family: "Noto Serif SC", serif;
+  font-family: var(--font-ui);
   font-size: 23px;
   letter-spacing: 0.08em;
   white-space: nowrap;
@@ -169,7 +138,7 @@ svg {
   color: #829280;
 }
 .brand-tag {
-  font-family: "Noto Sans SC", sans-serif;
+  font-family: var(--font-ui);
   font-size: 14px;
   letter-spacing: 0.04em;
 }
@@ -213,9 +182,7 @@ svg {
   border-radius: 10px;
   background: #ece4d3;
   color: #73603d;
-  font:
-    10px / 17px "Manrope",
-    sans-serif;
+  font: 10px / 17px var(--font-ui);
 }
 .app-main {
   display: grid;
@@ -237,20 +204,71 @@ svg {
 }
 .eyebrow {
   color: #7c877b;
-  font:
-    9px / 1.5 "Manrope",
-    sans-serif;
+  font: 9px / 1.5 var(--font-ui);
   letter-spacing: 0.17em;
   margin-bottom: 5px;
 }
 .calendar-heading h1 {
-  font-family: "Noto Serif SC", serif;
+  font-family: var(--font-ui);
   font-size: 28px;
 }
 .year {
-  font-family: "Manrope", sans-serif;
+  font-family: var(--font-ui);
   font-size: 25px;
   margin-right: 5px;
+}
+.calendar-date-trigger {
+  min-height: 44px;
+  padding: 0 2px;
+  border-radius: 8px;
+}
+.calendar-date-trigger:hover {
+  background: #edf1e9;
+}
+.month-picker {
+  padding: 12px 24px 24px;
+}
+.picker-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  min-height: 52px;
+}
+.picker-navigation button:disabled {
+  cursor: not-allowed;
+}
+.picker-year {
+  padding: 5px 10px;
+  font-size: 20px;
+  border-radius: 10px;
+}
+.picker-year span {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+}
+.picker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+  animation: backdrop-enter 180ms ease both;
+}
+.picker-grid button {
+  min-height: 52px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: #fffefa;
+  font-size: 15px;
+}
+.picker-grid button:hover {
+  background: #edf1e9;
+}
+.picker-grid button[aria-pressed="true"] {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fffefa;
 }
 .month-nav {
   gap: 1px;
@@ -303,6 +321,46 @@ svg {
   text-align: center;
   margin-bottom: 9px;
 }
+.calendar-gesture {
+  --calendar-day-height: 83px;
+  touch-action: none;
+  user-select: none;
+  overflow: hidden;
+  transition: transform 240ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.calendar-week {
+  height: calc((var(--calendar-day-height) + 3px) * var(--calendar-progress));
+  opacity: var(--calendar-progress);
+  overflow: hidden;
+  transition:
+    height 280ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    opacity 220ms ease;
+}
+.calendar-week.selected-week {
+  height: calc(var(--calendar-day-height) + 3px);
+  opacity: 1;
+}
+:where(.calendar-gesture) .day {
+  height: var(--calendar-day-height);
+  min-height: var(--calendar-day-height);
+}
+.calendar-gesture.is-dragging,
+.calendar-gesture.is-dragging .calendar-week {
+  transition: none;
+}
+.calendar-grip {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 28px;
+  border-radius: 10px;
+}
+.calendar-grip span {
+  width: 32px;
+  height: 4px;
+  border-radius: 4px;
+  background: #b7c7b6;
+}
 .day {
   position: relative;
   display: flex;
@@ -315,21 +373,44 @@ svg {
   border: 1px solid transparent;
 }
 .day-number {
-  font-family: "Manrope", sans-serif;
+  font-family: var(--font-ui);
   font-size: 22px;
   line-height: 1.5;
 }
 .lunar {
   font-size: 10px;
   color: #7c8679;
-  line-height: 1.8;
+  line-height: 1.2;
   white-space: nowrap;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.day-labels {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  max-width: 100%;
+}
+.day-extra-label {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 9px;
+  line-height: 1.2;
+  color: #7c8679;
+}
 .term {
   color: #4d7550;
+}
+.festival {
+  color: #a96d6c;
+}
+.holiday {
+  color: #957345;
 }
 .day-dots {
   font-size: 12px;
@@ -359,6 +440,7 @@ svg {
 }
 .day[aria-pressed="true"] .day-number,
 .day[aria-pressed="true"] .lunar,
+.day[aria-pressed="true"] .day-extra-label,
 .day[aria-pressed="true"] .day-dots {
   color: #f6f8f1;
 }
@@ -440,9 +522,7 @@ svg {
   gap: 10px;
 }
 .agenda-heading h2 {
-  font:
-    27px / 1.55 "Noto Serif SC",
-    serif;
+  font: 27px / 1.55 var(--font-ui);
   letter-spacing: 0.07em;
 }
 .agenda-heading > span {
@@ -453,6 +533,30 @@ svg {
   color: #859080;
   font-size: 11px;
   margin: 3px 0 21px;
+}
+.day-highlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: -10px 0 22px;
+}
+.date-highlight {
+  font-size: 11px;
+  line-height: 1.5;
+  padding: 3px 9px;
+  border-radius: 8px;
+  background: #edf1e9;
+}
+.date-highlight.festival {
+  background: #f6ece8;
+}
+.date-highlight.off {
+  background: #f2ece0;
+  color: #8a663f;
+}
+.date-highlight.work {
+  background: #e9edf1;
+  color: #64778e;
 }
 .glass-deck {
   --drag-x: 0px;
@@ -544,10 +648,7 @@ summary.glass-summary::-webkit-details-marker {
   padding: 2px 8px;
 }
 .event-time {
-  font:
-    11px / 1.6 "Manrope",
-    "Noto Sans SC",
-    sans-serif;
+  font: 11px / 1.6 var(--font-ui);
 }
 .glass-title {
   font-size: 17px;
@@ -598,7 +699,7 @@ summary.glass-summary::-webkit-details-marker {
   background: #fffdf5;
 }
 .stack-stepper span {
-  font-family: "Manrope", sans-serif;
+  font-family: var(--font-ui);
   font-size: 10px;
   color: var(--muted);
 }
@@ -705,15 +806,11 @@ summary.glass-summary::-webkit-details-marker {
   width: 38px;
   padding: 3px;
   flex-shrink: 0;
-  font:
-    20px / 1.4 "Manrope",
-    sans-serif;
+  font: 20px / 1.4 var(--font-ui);
   color: #38675b;
 }
 .upcoming-date small {
-  font:
-    9px / 1.5 "Noto Sans SC",
-    sans-serif;
+  font: 9px / 1.5 var(--font-ui);
   color: #88917f;
 }
 .upcoming-text {
@@ -786,7 +883,7 @@ summary.glass-summary::-webkit-details-marker {
   color: #788473;
 }
 .empty-state h3 {
-  font-family: "Noto Serif SC", serif;
+  font-family: var(--font-ui);
   color: #4b6350;
   font-size: 18px;
   margin-bottom: 9px;
@@ -879,11 +976,70 @@ summary.glass-summary::-webkit-details-marker {
   background: #fafaf5;
   color: var(--ink);
   box-shadow: 0 30px 100px #24392a30;
+  max-width: none;
+  overflow: hidden;
+  animation: sheet-enter 240ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.sheet[open] {
+  display: flex;
+  flex-direction: column;
+}
+.sheet-body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+}
+.sheet-footer {
+  flex-shrink: 0;
+  padding: 12px 24px max(16px, env(safe-area-inset-bottom));
+  background: #fafaf5ee;
+  border-top: 1px solid var(--line);
+}
+.sheet-footer .full-button {
+  margin: 0;
+}
+.sheet.is-closing {
+  pointer-events: none;
+  animation: sheet-exit 180ms ease both;
+}
+@keyframes sheet-enter {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes sheet-exit {
+  to {
+    opacity: 0;
+    transform: translateY(40px);
+  }
 }
 .sheet::backdrop {
   background: #20352e45;
   -webkit-backdrop-filter: blur(5px);
   backdrop-filter: blur(5px);
+  animation: backdrop-enter 240ms ease both;
+}
+.sheet.is-closing::backdrop {
+  animation: backdrop-exit 180ms ease both;
+}
+@keyframes backdrop-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes backdrop-exit {
+  to {
+    opacity: 0;
+  }
 }
 .sheet-header {
   display: flex;
@@ -897,9 +1053,10 @@ summary.glass-summary::-webkit-details-marker {
   backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--line);
   padding: 16px 22px;
+  flex-shrink: 0;
 }
 .sheet-header h2 {
-  font-family: "Noto Serif SC", serif;
+  font-family: var(--font-ui);
   font-size: 22px;
 }
 .editor-form,
@@ -1151,9 +1308,7 @@ fieldset {
   gap: 4px;
 }
 .storage-hero strong {
-  font:
-    17px / 1.5 "Noto Serif SC",
-    serif;
+  font: 17px / 1.5 var(--font-ui);
 }
 .storage-hero span {
   font-size: 10px;
@@ -1179,14 +1334,10 @@ fieldset {
   color: #8a9780;
 }
 .storage-stats strong {
-  font:
-    24px / 1.4 "Manrope",
-    sans-serif;
+  font: 24px / 1.4 var(--font-ui);
 }
 .storage-stats small {
-  font:
-    10px "Noto Sans SC",
-    sans-serif;
+  font: 10px var(--font-ui);
 }
 .setting-block {
   border-top: 1px solid var(--line);
@@ -1270,7 +1421,7 @@ fieldset {
   text-align: center;
 }
 .startup-state h1 {
-  font-family: "Noto Serif SC", serif;
+  font-family: var(--font-ui);
   font-size: 26px;
 }
 .startup-state p {
@@ -1348,9 +1499,21 @@ fieldset {
   }
   .day {
     min-height: 70px;
+    padding: 4px 1px 3px;
+  }
+  .calendar-gesture {
+    --calendar-day-height: 70px;
   }
   .day-number {
     font-size: 20px;
+    line-height: 1.2;
+  }
+  .holiday-mark {
+    top: 0;
+    right: 0;
+    width: 11px;
+    height: 12px;
+    line-height: 12px;
   }
   .lunar {
     font-size: 9px;
@@ -1387,12 +1550,27 @@ fieldset {
     width: min(400px, calc(100% - 32px));
   }
   .sheet {
-    inset: auto 0 0;
+    inset: auto 0 var(--sheet-bottom, 0px);
     width: 100%;
-    max-height: calc(100dvh - max(16px, env(safe-area-inset-top)));
+    max-width: 100%;
+    max-height: calc(var(--sheet-viewport-height, 100dvh) - max(16px, env(safe-area-inset-top)));
     border-radius: 25px 25px 0 0;
     padding-bottom: env(safe-area-inset-bottom);
-    margin: 0;
+    margin: 0 auto;
+  }
+  .sheet-full {
+    height: calc(var(--sheet-viewport-height, 100dvh) - max(16px, env(safe-area-inset-top)));
+  }
+  .sheet-body {
+    scrollbar-gutter: auto;
+  }
+  .sheet-handle {
+    flex-shrink: 0;
+    width: 32px;
+    height: 4px;
+    border-radius: 4px;
+    background: #c8d2c3;
+    margin: 10px auto 0;
   }
   .sheet-header {
     padding: 14px 20px 10px;

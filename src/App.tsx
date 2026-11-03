@@ -5,16 +5,15 @@ import { categoryStyle, EventDeck } from './components/EventDeck';
 import { type EditorInput, EventEditor } from './components/EventEditor';
 import { ImportNotice } from './components/ImportNotice';
 import { Settings } from './components/Settings';
-import { chineseDate, occurrencesBetween, occurrencesOn } from './domain/calendar';
+import { calendarDay, occurrencesBetween, occurrencesOn } from './domain/calendar';
 import { addDays, parseDate, readableDate, todayKey, weekdays } from './domain/dates';
-import { holidayOn } from './domain/holidays';
 import type { Occurrence } from './domain/model';
 import { useAppModel } from './hooks/useAppModel';
 
 export default function App() {
   const app = useAppModel();
   const [selected, setSelected] = useState(todayKey()),
-    [mode, setMode] = useState<CalendarMode>('week');
+    [mode, setMode] = useState<CalendarMode>('month');
   const [category, setCategory] = useState('all'),
     [panel, setPanel] = useState<'import' | 'settings' | 'inbox' | null>(null);
   const [editor, setEditor] = useState<EditorInput | null>(null);
@@ -43,9 +42,8 @@ export default function App() {
       </main>
     );
   const inbox = snapshot.events.filter((event) => !event.date);
-  const items = occurrencesOn(snapshot.events, selected, category),
-    lunar = chineseDate(selected),
-    holiday = holidayOn(app.policies, selected);
+  const items = occurrencesOn(snapshot.events, selected, category);
+  const { lunar, holiday, labels } = calendarDay(selected, app.policies);
   const upcoming = occurrencesBetween(snapshot.events, addDays(selected, 1), 7, category);
   const first = `${selected.slice(0, 7)}-01`,
     last = new Date(
@@ -240,11 +238,23 @@ export default function App() {
                 </div>
                 <span>{items.length} 件事</span>
               </div>
-              <p className="agenda-sub">
-                农历{lunar.full}
-                {lunar.term ? ` · ${lunar.term}` : ''}
-                {holiday.name ? ` · ${holiday.name}` : ''}
-              </p>
+              <p className="agenda-sub">农历{lunar.full}</p>
+              {(labels.length > 0 || holiday.kind) && (
+                <section className="day-highlights" aria-label="当天节日与假期">
+                  {labels
+                    .filter((label) => label.kind !== 'holiday')
+                    .map((label) => (
+                      <span className={`date-highlight ${label.kind}`} key={label.name}>
+                        {label.name}
+                      </span>
+                    ))}
+                  {holiday.kind && (
+                    <span className={`date-highlight ${holiday.kind}`}>
+                      {holiday.name} · {holiday.kind === 'off' ? '放假' : '补班'}
+                    </span>
+                  )}
+                </section>
+              )}
               <EventDeck
                 key={`${selected}:${category}`}
                 items={items}

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import policies from '../src/data/holidays.json';
 import {
+  calendarDay,
   chineseDate,
   deleteOccurrence,
   matchesRepeat,
@@ -8,6 +10,7 @@ import {
   toggleCompleted,
 } from '../src/domain/calendar';
 import { addMonths, isDateKey, oneMonthAfter, todayKey } from '../src/domain/dates';
+import { validateHolidayFeed } from '../src/domain/holidays';
 import { event, state } from './fixtures';
 
 describe('北京时间与日期边界', () => {
@@ -26,6 +29,64 @@ describe('北京时间与日期边界', () => {
 });
 
 describe('重复事项与中国日历', () => {
+  it('南北小年随农历跨公历年份移动，只在腊月对应日期标注', () => {
+    const feed = validateHolidayFeed(policies);
+    for (const [north, south] of [
+      ['2025-01-22', '2025-01-23'],
+      ['2026-02-10', '2026-02-11'],
+      ['2027-01-30', '2027-01-31'],
+    ]) {
+      expect(chineseDate(north ?? '').festivals).toContain('北方小年');
+      expect(chineseDate(north ?? '').festivals).not.toContain('南方小年');
+      expect(chineseDate(south ?? '').festivals).toContain('南方小年');
+      expect(chineseDate(south ?? '').festivals).not.toContain('北方小年');
+    }
+    expect(chineseDate('2026-02-12').festivals).not.toContain('南方小年');
+    expect(chineseDate('2026-01-11').festivals).not.toContain('北方小年');
+    expect(calendarDay('2026-02-10', feed).holiday.kind).toBeUndefined();
+  });
+  it('保留常见农历民俗节日，节日名称不重复', () => {
+    expect(chineseDate('2026-01-26').festivals).toContain('腊八节');
+    expect(chineseDate('2026-08-27').festivals).toContain('中元节');
+    expect(chineseDate('2026-11-09').festivals).toContain('寒衣节');
+    const southern = chineseDate('2026-02-11').festivals;
+    expect(new Set(southern).size).toBe(southern.length);
+  });
+  it('公历节日、传统节日和浮动星期节日均显示，且不推断放假', () => {
+    const feed = validateHolidayFeed(policies);
+    expect(chineseDate('2026-10-31').festivals).toContain('万圣夜');
+    expect(chineseDate('2026-11-01').festivals).toContain('万圣节');
+    expect(chineseDate('2026-02-14').festivals).toContain('情人节');
+    expect(chineseDate('2026-05-10').festivals).toContain('母亲节');
+    expect(chineseDate('2026-06-21').festivals).toContain('父亲节');
+    expect(chineseDate('2026-02-17').festivals).toContain('春节');
+    expect(calendarDay('2026-10-31', feed).holiday.kind).toBeUndefined();
+    expect(calendarDay('2026-02-14', feed).holiday.kind).toBe('work');
+    expect(calendarDay('2027-01-01', feed).holiday.kind).toBeUndefined();
+    expect(calendarDay('2027-01-01', feed).labels).toContainEqual({
+      name: '元旦',
+      kind: 'festival',
+    });
+  });
+  it('节气与节日重合时保留双方名称，放假名称不重复', () => {
+    const feed = validateHolidayFeed(policies);
+    const summer = calendarDay('2026-06-21', feed);
+    expect(summer.labels).toContainEqual({ name: '夏至', kind: 'term' });
+    expect(summer.labels).toContainEqual({ name: '父亲节', kind: 'festival' });
+    const spring = calendarDay('2026-02-17', feed);
+    expect(spring.labels.filter((label) => label.name === '春节')).toHaveLength(1);
+    expect(spring.holiday.kind).toBe('off');
+  });
+  it('全年二十四节气完整，跨年仍按对应年份计算', () => {
+    const terms = new Set<string>();
+    for (let day = 0; day < 365; day++) {
+      const date = new Date(Date.UTC(2026, 0, 1 + day)).toISOString().slice(0, 10);
+      const term = chineseDate(date).term;
+      if (term) terms.add(term);
+    }
+    expect(terms.size).toBe(24);
+    expect(chineseDate('2027-01-05').term).toBe('小寒');
+  });
   it('待整理补日期或整体改期后，截图仍关联可见事项', () => {
     const snapshot = state();
     const pending = {

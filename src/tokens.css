@@ -1,4 +1,5 @@
 :root {
+  --font-ui: "MiSans VF", "MiSans", sans-serif;
   --paper: #faf9f5;
   --ink: #293d33;
   --muted: #727e6e;
