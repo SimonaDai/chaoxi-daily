@@ -167,7 +167,9 @@ test('中英文离线 OCR 使用随包模型，所有请求都留在本机', asy
     if (/^https?:/.test(request.url()) && !request.url().startsWith('http://127.0.0.1:4173/'))
       remoteRequests.push(request.url());
   });
-  await page.evaluate(() => document.fonts.ready);
+  await page.evaluate(() =>
+    document.fonts.load('40px "MiSans VF"', '【星河科技】笔试通知2026年10月28日 14:00-15:00'),
+  );
   const png = await page.evaluate(() => {
     const canvas = document.createElement('canvas');
     canvas.width = 1200;
@@ -177,7 +179,7 @@ test('中英文离线 OCR 使用随包模型，所有请求都留在本机', asy
     context.fillStyle = 'white';
     context.fillRect(0, 0, 1200, 300);
     context.fillStyle = 'black';
-    context.font = '40px "Noto Sans SC", sans-serif';
+    context.font = '40px "MiSans VF", sans-serif';
     context.fillText('【星河科技】笔试通知', 35, 85);
     context.fillText('2026年10月28日 14:00-15:00', 35, 170);
     return canvas.toDataURL('image/png').split(',')[1] ?? '';

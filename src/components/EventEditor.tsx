@@ -1,6 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { ImagePlus, X } from 'lucide-react';
-import { type FormEvent, useEffect, useRef, useState } from 'react';
+import { type FormEvent, useEffect, useId, useRef, useState } from 'react';
 import { isDateKey } from '../domain/dates';
 import {
   type Category,
@@ -77,6 +77,7 @@ export function EventEditor({
     setPreview(url);
     return () => URL.revokeObjectURL(url);
   }, [photo]);
+  const formId = useId();
   if (!snapshot) return null;
   const set = <K extends keyof EventFields>(key: K, value: EventFields[K]) =>
     setFields((current) => ({ ...current, [key]: value }));
@@ -164,12 +165,23 @@ export function EventEditor({
 
   return (
     <Sheet
+      fullHeight
       title={original ? '编辑事项' : input.draft ? '核对后记下' : '记一件事'}
       onClose={() => {
         if (!working && !app.busy) onClose();
       }}
+      footer={
+        <button
+          type="submit"
+          form={formId}
+          disabled={working || app.busy}
+          className="primary-button full-button"
+        >
+          {working || app.busy ? '正在保存…' : dated ? '记进日历' : '存入待整理'}
+        </button>
+      }
     >
-      <form className="editor-form" onSubmit={(event) => void submit(event)}>
+      <form id={formId} className="editor-form" onSubmit={(event) => void submit(event)}>
         {input.draft && (
           <div className="soft-note">识别结果仅作填写建议，请对照原通知核对。提醒默认关闭。</div>
         )}
@@ -454,9 +466,6 @@ export function EventEditor({
               {error}
             </p>
           )}
-          <button type="submit" className="primary-button full-button">
-            {working || app.busy ? '正在保存…' : dated ? '记进日历' : '存入待整理'}
-          </button>
           {original?.date === null && (
             <button
               type="button"
